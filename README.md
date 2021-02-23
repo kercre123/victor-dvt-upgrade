@@ -1,10 +1,12 @@
 # victor-dvt-upgrade
 
-This is a set of scripts which upgrades pre-modern-partition-table bots. The upgradedvt2.sh script
+This is a set of scripts which upgrades pre-modern-partition-table bots.
 
 ## disclaimer
 
-I am not responsible for bricks. If something goes wrong, and the bot won't boot, your best hope will be Qualcomm Download Mode through USB.
+I am not responsible for bricks. If something goes wrong, and the bot won't boot, your best hope will be Qualcomm Download Mode through USB. 
+
+When the bot shutdowns and doesn't boot up at the end of the script, it can be scary, so make sure you read the instructions and reboot manually again before going to me.
 
 ## upgradedvt2.sh
 
