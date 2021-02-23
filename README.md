@@ -4,6 +4,8 @@ This is a set of scripts which upgrades pre-modern-partition-table bots.
 
 End result is a bot which runs my custom firmware, has another bot's serial number/cloud keys, has a/b boot slots so auto-updates work, doesn't run rampost, doesn't require signed bootloaders. DVT1-3 heads are awesome because their CPU fuses are not set, so they can run any ABOOT/SBL/TZ/etc we want.
 
+This works by renaming partitions with the `parted` tool. There aren't enough partitions for a recovery, so there is no recovery/recoveryfs in the end result. You will have to trust me not to mess up in the stable branch of my firmware.
+
 ## disclaimer
 
 I am not responsible for bricks. If something goes wrong, and the bot won't boot, your best hope will be Qualcomm Download Mode through USB. 
