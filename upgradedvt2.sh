@@ -2,6 +2,14 @@
 
 set -e
 
+# script goal:
+# download and hash check all the required images:
+#  recoveryfs, recovery, emr, oem, aboot
+# use parted (already in /cache) to shorten the huge system partition
+# make emr and switchboard partitions with that new empty space
+# dump all the images to respective partitions
+# rename partitions so we have three slots
+
 BASE_URL="http://wire.my.to:81"
 
 EXPECTED_HASH_RFS="841d2cf6f7d9b6b0739f0074462b47e3"
@@ -49,8 +57,6 @@ echo "mounting cache"
 mount /dev/block/bootdevice/by-name/cache /cache
 PATH=$PATH:/cache
 
-BIG_DISPLAY "starting"
-sleep 2
 SMALL_DISPLAY "start checks"
 
 PARTED_FILE_PATH="/cache/parted"
@@ -137,6 +143,7 @@ SMALL_DISPLAY "shortening system"
 echo "shortening system"
 
 # flexible in case we want to do the same for other partitions
+# removes 32MB from system, makes two 16 MB partitions
 line=$(parted -m /dev/mmcblk0 unit MB print | grep system)
 num=$(echo $line | awk -F: '{print $1}')
 start=$(echo $line | awk -F: '{print $2}' | sed 's/MB//')
@@ -144,21 +151,28 @@ end=$(echo $line | awk -F: '{print $3}' | sed 's/MB//')
 
 newend=$((end - 32))
 parted /dev/mmcblk0 resizepart $num ${newend}MB
+# 32
 parted /dev/mmcblk0 mkpart emr ext4 ${newend}MB $((newend+16))MB
+# 33
 parted /dev/mmcblk0 mkpart switchboard ext4 $((newend+16))MB $((newend+32))MB
 
 SMALL_DISPLAY "begin flash"
 sync
 
-BIG_DISPLAY "recoveryfs"
+BIG_DISPLAY "recoveryfs..."
+echo "dumping recoveryfs..."
 gunzip -c "/dvtupgrade/recfs.img.gz" > "/dev/block/bootdevice/by-name/templabel"
-BIG_DISPLAY "recovery"
+BIG_DISPLAY "recovery..."
+echo "dumping recovery..."
 gunzip -c "/dvtupgrade/rec.img.gz" > "/dev/block/bootdevice/by-name/recoveryfs"
-BIG_DISPLAY "emr"
+BIG_DISPLAY "emr..."
+echo "dumping emr..."
 dd if=/dvtupgrade/emr.img of=/dev/mmcblk0p32
-BIG_DISPLAY "oem"
+BIG_DISPLAY "oem..."
+echo "dumping oem..."
 dd if=/dvtupgrade/oem.img of=/dev/block/bootdevice/by-name/oem
-BIG_DISPLAY "aboot"
+BIG_DISPLAY "aboot..."
+echo "dumping aboot..."
 dd if=/dvtupgrade/aboot.img of=/dev/block/bootdevice/by-name/aboot
 
 sync
@@ -166,15 +180,15 @@ sync
 SMALL_DISPLAY "renaming"
 
 echo "rename partitions"
-BIG_DISPLAY "recovery"
+BIG_DISPLAY "rn recovery"
 parted /dev/mmcblk0 name 7 recovery
-BIG_DISPLAY "recoveryfs"
+BIG_DISPLAY "rn recoveryfs"
 parted /dev/mmcblk0 name 24 recoveryfs
-BIG_DISPLAY "system_b"
+BIG_DISPLAY "rn system_b"
 parted /dev/mmcblk0 name 27 system_b
-BIG_DISPLAY "system_a"
+BIG_DISPLAY "rn system_a"
 parted /dev/mmcblk0 name 30 system_a
-BIG_DISPLAY "boot_a"
+BIG_DISPLAY "rn boot_a"
 parted /dev/mmcblk0 name 23 boot_a
 sync
 echo "done, rebooting in 5 seconds."
