@@ -139,35 +139,54 @@ SMALL_DISPLAY "check recovery"
 check_hash "/dvtupgrade/rec.img.gz" "$EXPECTED_HASH_REC"
 SMALL_DISPLAY "good"
 
-SMALL_DISPLAY "shortening system"
-echo "shortening system"
+SMALL_DISPLAY "shortening templabel"
+echo "shortening templabel"
+
+echo "rename recoveryfs to recovery"
+parted /dev/mmcblk0 name 7 recovery
 
 # flexible in case we want to do the same for other partitions
-# removes 32MB from system, makes two 16 MB partitions
-line=$(parted -m /dev/mmcblk0 unit MB print | grep system)
+# removes 32MB from templabel, makes two 16 MB partitions
+
+dev="/dev/mmcblk0"
+
+line=$(parted -m $dev unit MB print | grep templabel)
 num=$(echo $line | awk -F: '{print $1}')
 start=$(echo $line | awk -F: '{print $2}' | sed 's/MB//')
 end=$(echo $line | awk -F: '{print $3}' | sed 's/MB//')
 
+size=$((end - start))
 newend=$((end - 32))
-parted /dev/mmcblk0 resizepart $num ${newend}MB
-# 32
-parted /dev/mmcblk0 mkpart emr ext4 ${newend}MB $((newend+16))MB
-# 33
-parted /dev/mmcblk0 mkpart switchboard ext4 $((newend+16))MB $((newend+32))MB
+emrstart=$newend
+emrend=$((emrstart + 16))
+switchstart=$emrend
+switchend=$((switchstart + 16))
+
+parted $dev rm $num
+
+# get rid of abootbak since there is a 32 partition limit for some reason
+parted $dev rm 11
+
+parted $dev mkpart recoveryfs ext4 ${start}MB ${newend}MB
+parted $dev mkpart emr ext4 ${emrstart}MB ${emrend}MB
+parted $dev mkpart switchboard ext4 ${switchstart}MB ${switchend}MB
+
+echo "successful shortening. dding empty bytes to switchboard since its ext4"
+
+dd if=/dev/zero of=/dev/mmcblk0p11
 
 SMALL_DISPLAY "begin flash"
 sync
 
 BIG_DISPLAY "recoveryfs..."
 echo "dumping recoveryfs..."
-gunzip -c "/dvtupgrade/recfs.img.gz" > "/dev/block/bootdevice/by-name/templabel"
+gunzip -c "/dvtupgrade/recfs.img.gz" > /dev/mmcblk0p24
 BIG_DISPLAY "recovery..."
 echo "dumping recovery..."
 gunzip -c "/dvtupgrade/rec.img.gz" > "/dev/block/bootdevice/by-name/recoveryfs"
 BIG_DISPLAY "emr..."
 echo "dumping emr..."
-dd if=/dvtupgrade/emr.img of=/dev/mmcblk0p32
+dd if=/dvtupgrade/emr.img of=/dev/mmcblk0p31
 BIG_DISPLAY "oem..."
 echo "dumping oem..."
 dd if=/dvtupgrade/oem.img of=/dev/block/bootdevice/by-name/oem
@@ -180,8 +199,6 @@ sync
 SMALL_DISPLAY "renaming"
 
 echo "rename partitions"
-BIG_DISPLAY "rn recovery"
-parted /dev/mmcblk0 name 7 recovery
 BIG_DISPLAY "rn recoveryfs"
 parted /dev/mmcblk0 name 24 recoveryfs
 BIG_DISPLAY "rn system_b"
