@@ -173,17 +173,17 @@ parted $dev mkpart switchboard ext4 ${switchstart}MB ${switchend}MB
 
 echo "successful shortening. dding empty bytes to switchboard since its ext4"
 
-dd if=/dev/zero of=/dev/mmcblk0p11 bs=1M count=16
+dd if=/dev/zero of=/dev/mmcblk0p32 bs=1M count=16
 
 SMALL_DISPLAY "begin flash"
 sync
 
 BIG_DISPLAY "recoveryfs..."
 echo "dumping recoveryfs..."
-gunzip -c "/dvtupgrade/recfs.img.gz" > /dev/mmcblk0p24
+gunzip -c "/dvtupgrade/recfs.img.gz" > /dev/mmcblk0p11
 BIG_DISPLAY "recovery..."
 echo "dumping recovery..."
-gunzip -c "/dvtupgrade/rec.img.gz" > "/dev/block/bootdevice/by-name/recoveryfs"
+gunzip -c "/dvtupgrade/rec.img.gz" > /dev/mmcblk0p7
 BIG_DISPLAY "emr..."
 echo "dumping emr..."
 dd if=/dvtupgrade/emr.img of=/dev/mmcblk0p31
