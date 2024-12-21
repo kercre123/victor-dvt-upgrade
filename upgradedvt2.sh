@@ -86,17 +86,13 @@ if [ -f /dev/block/bootdevice/by-name/emr ]; then
 	exit 0
 fi
 
-BIG_DISPLAY "preparing"
-sleep 2
-SMALL_DISPLAY "dirs"
-mkdir -p /dvtupgrade
-sleep 2
-SMALL_DISPLAY "kill procs"
+echo "kill procs, delete anki folder"
 systemctl stop anki-robot.target
-rm -rf /anki
 sleep 2
-SMALL_DISPLAY "download"
-sleep 1
+cd /anki/bin
+killall -9 vic-*
+
+
 umount -f /factory
 echo "curl files..."
 BIG_DISPLAY "recoveryfs"
