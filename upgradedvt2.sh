@@ -173,7 +173,7 @@ parted $dev mkpart switchboard ext4 ${switchstart}MB ${switchend}MB
 
 echo "successful shortening. dding empty bytes to switchboard since its ext4"
 
-dd if=/dev/zero of=/dev/mmcblk0p11
+dd if=/dev/zero of=/dev/mmcblk0p11 bs=1M count=16
 
 SMALL_DISPLAY "begin flash"
 sync
