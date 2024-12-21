@@ -90,8 +90,14 @@ echo "kill procs, delete anki folder"
 systemctl stop anki-robot.target
 sleep 2
 cd /anki/bin
+set +e
 killall -9 vic-*
+cd /
+rm -rf /anki
+set -e
 
+
+mkdir -p /dvtupgrade
 
 umount -f /factory
 echo "curl files..."
@@ -144,6 +150,7 @@ parted /dev/mmcblk0 name 7 recovery
 # flexible in case we want to do the same for other partitions
 # removes 32MB from templabel, makes two 16 MB partitions
 
+echo "deleting templabel, creating emr, oem, and recoveryfs"
 dev="/dev/mmcblk0"
 
 line=$(parted -m $dev unit MB print | grep templabel)
@@ -169,7 +176,10 @@ parted $dev mkpart switchboard ext4 ${switchstart}MB ${switchend}MB
 
 echo "successful shortening. dding empty bytes to switchboard since its ext4"
 
+set +e
+# expecting "no space left on device"
 dd if=/dev/zero of=/dev/mmcblk0p32 bs=1M count=16
+set -e
 
 SMALL_DISPLAY "begin flash"
 sync
@@ -195,8 +205,6 @@ sync
 SMALL_DISPLAY "renaming"
 
 echo "rename partitions"
-BIG_DISPLAY "rn recoveryfs"
-parted /dev/mmcblk0 name 24 recoveryfs
 BIG_DISPLAY "rn system_b"
 parted /dev/mmcblk0 name 27 system_b
 BIG_DISPLAY "rn system_a"
