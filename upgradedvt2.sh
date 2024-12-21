@@ -190,11 +190,13 @@ gunzip -c "/dvtupgrade/recfs.img.gz" > /dev/mmcblk0p11
 BIG_DISPLAY "recovery..."
 echo "dumping recovery..."
 gunzip -c "/dvtupgrade/rec.img.gz" > /dev/mmcblk0p7
+set +e
 BIG_DISPLAY "emr..."
 echo "dumping emr..."
-dd if=/dvtupgrade/emr.img of=/dev/mmcblk0p31
+dd if=/dvtupgrade/emr.img of=/dev/mmcblk0p24
 BIG_DISPLAY "oem..."
 echo "dumping oem..."
+set -e
 dd if=/dvtupgrade/oem.img of=/dev/block/bootdevice/by-name/oem
 BIG_DISPLAY "aboot..."
 echo "dumping aboot..."
