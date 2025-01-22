@@ -97,6 +97,16 @@ rm -rf /anki
 set -e
 
 
+echo 1333333 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+echo disabled > /sys/kernel/debug/msm_otg/bus_voting  # This prevents USB from pinning RAM to 400MHz
+echo 0 > /sys/kernel/debug/msm-bus-dbg/shell-client/update_request
+echo 1 > /sys/kernel/debug/msm-bus-dbg/shell-client/mas
+echo 512 > /sys/kernel/debug/msm-bus-dbg/shell-client/slv
+echo 0 > /sys/kernel/debug/msm-bus-dbg/shell-client/ab
+echo active clk2 0 1 max 800000 > /sys/kernel/debug/rpm_send_msg/message # Max RAM freq in KHz = 400MHz
+echo 1 > /sys/kernel/debug/msm-bus-dbg/shell-client/update_request
+echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+
 mkdir -p /dvtupgrade
 
 umount -f /factory
@@ -213,6 +223,12 @@ BIG_DISPLAY "rn system_a"
 parted /dev/mmcblk0 name 30 system_a
 BIG_DISPLAY "rn boot_a"
 parted /dev/mmcblk0 name 23 boot_a
+BIG_DISPLAY "rn 11 to recoveryfs"
+parted /dev/mmcblk0 name 11 recoveryfs
+BIG_DISPLAY "rn 24 to emr"
+parted /dev/mmcblk0 name 24 emr
+BIG_DISPLAY "rn 32 to switchboard"
+parted /dev/mmcblk0 name 32 switchboard
 sync
 echo "done, rebooting in 5 seconds."
 SMALL_DISPLAY "done, reboot soon"
